@@ -1,25 +1,26 @@
 import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { getProfilePic } from "../utils/getProfilePic.js";
+import { errorHandler } from "../utils/error.js";
 
-export const signup = async (req, res) => {
+export const signup = async (req, res, next) => {
   try {
     const { fullName, username, email, password, confirmPassword, gender } =
       req.body;
 
     if (password !== confirmPassword) {
-      return res.status(400).json({ error: "Password don't match" });
+      next(errorHandler(400, "Password don't match"));
     }
 
     const user = await User.findOne({ username });
     const isEmailExist = await User.findOne({ email });
 
     if (user) {
-      return res.status(400).json({ error: "username already exists" });
+      next(errorHandler(400, "username already exists"));
     }
 
     if (isEmailExist) {
-      return res.status(400).json({ error: "Email already exists" });
+      next(errorHandler(400, "Email already exists"));
     }
 
     const profilePicture = getProfilePic(gender, username);
@@ -48,7 +49,7 @@ export const signup = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(400).json({ error: error.message });
+    next(error);
   }
 };
 
