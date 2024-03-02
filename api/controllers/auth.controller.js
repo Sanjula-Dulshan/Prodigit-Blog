@@ -83,7 +83,8 @@ export const login = async (req, res) => {
       isAdmin: validUser.isAdmin,
     });
     res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
+      httpOnly: true, // prevent XSS attacks cross-site scripting attacks
+      sameSite: "strict", // CSRF attacks cross-site request forgery attacks
       path: "/api/auth/refresh_token",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
@@ -97,7 +98,6 @@ export const login = async (req, res) => {
 
 //Create refresh token
 const createRefreshToken = (payload) => {
-  console.log("refresh payload", payload);
   return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "7d",
   });
@@ -106,8 +106,6 @@ const createRefreshToken = (payload) => {
 //get access token
 export const getAccessToken = (req, res) => {
   try {
-    console.log("re", req.cookies);
-
     const rf_token = req.cookies.refresh_token;
     if (!rf_token) return res.status(400).json({ msg: "Please login now!" });
 
@@ -128,8 +126,6 @@ export const getAccessToken = (req, res) => {
 
 //Create access token
 const createAccessToken = (payload) => {
-  console.log("access payload", payload);
-
   return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });
