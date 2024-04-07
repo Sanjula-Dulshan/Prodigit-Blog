@@ -50,12 +50,11 @@ export const signup = async (req, res, next) => {
       profilePicture: newUser.profilePicture,
     });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
 
-export const login = async (req, res,next) => {
+export const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password || email === "" || password === "") {
@@ -91,7 +90,6 @@ export const login = async (req, res,next) => {
 
     return res.status(200).json(userWithoutPassword);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
@@ -118,9 +116,8 @@ export const getAccessToken = (req, res) => {
       });
       res.json({ access_token });
     });
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json({ msg: err.message });
+  } catch (error) {
+    next(error);
   }
 };
 
