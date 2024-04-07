@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import { errorHandler } from "../utils/error.js";
 
 export const createPost = async (req, res, next) => {
   const { title, content } = req.body;
