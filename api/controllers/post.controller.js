@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import { errorHandler } from "../utils/error.js";
 
 export const createPost = async (req, res, next) => {
   const { title, content } = req.body;
@@ -21,7 +22,6 @@ export const createPost = async (req, res, next) => {
     const savedPost = await newPost.save();
     res.status(201).json(savedPost);
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };
