@@ -1,12 +1,19 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Alert, Button, Label, Spinner, TextInput } from "flowbite-react";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import axios from "axios";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
 
 export default function SignIn() {
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const { loading, error: errorMessage } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  console.log("loading", loading);
 
   const emailRef = useRef();
   const passwordRef = useRef();
@@ -20,21 +27,18 @@ export default function SignIn() {
     };
 
     if (!data.email || !data.password) {
-      return setErrorMessage("Please fill out all fields.");
+      return dispatch(signInFailure("All fields are required"));
     }
 
     console.log(data);
 
     try {
-      setLoading(true);
-      setErrorMessage(null);
+      dispatch(signInStart());
       const res = await axios.post("/api/auth/login", data);
-      console.log("res.data", res.data);
-      setLoading(false);
+      dispatch(signInSuccess(res.data));
       navigate("/");
     } catch (error) {
-      setErrorMessage(error.response.data.message);
-      setLoading(false);
+      dispatch(signInFailure(error.response.data.message));
     }
   };
 
