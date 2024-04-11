@@ -1,9 +1,20 @@
-import { Link } from "react-router-dom";
-import { Button, Label, Select, TextInput } from "flowbite-react";
-import { useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Alert,
+  Button,
+  Label,
+  Select,
+  Spinner,
+  TextInput,
+} from "flowbite-react";
+import { useRef, useState } from "react";
 import axios from "axios";
 
 export default function SignUp() {
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   const fullNameRef = useRef();
   const usernameRef = useRef();
   const emailRef = useRef();
@@ -13,21 +24,32 @@ export default function SignUp() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const data = {
-      fullName: fullNameRef.current.value,
-      username: usernameRef.current.value,
-      email: emailRef.current.value,
-      password: passwordRef.current.value,
-      confirmPassword: confirmPasswordRef.current.value,
+      fullName: fullNameRef.current.value.trim(),
+      username: usernameRef.current.value.trim(),
+      email: emailRef.current.value.trim(),
+      password: passwordRef.current.value.trim(),
+      confirmPassword: confirmPasswordRef.current.value.trim(),
       gender: genderRef.current.value,
     };
+
+    if (!data.username || !data.email || !data.password) {
+      return setErrorMessage("Please fill out all fields.");
+    }
+
     console.log(data);
 
     try {
+      setLoading(true);
+      setErrorMessage(null);
       const res = await axios.post("/api/auth/signup", data);
-      console.log("res", res.data);
+      console.log("res.data", res.data);
+      setLoading(false);
+      navigate("/sign-in");
     } catch (error) {
-      console.log(error);
+      setErrorMessage(error.response.data.message);
+      setLoading(false);
     }
   };
 
@@ -116,8 +138,16 @@ export default function SignUp() {
               gradientDuoTone="greenToBlue"
               type="submit"
               onClick={handleSubmit}
+              disabled={loading}
             >
-              Sign Up
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  <span className="pl-3">Loading...</span>
+                </>
+              ) : (
+                "Sign Up"
+              )}
             </Button>
           </form>
           <div className="flex gap-2 text-sm mt-5">
@@ -126,6 +156,11 @@ export default function SignUp() {
               Sign In
             </Link>
           </div>
+          {errorMessage && (
+            <Alert className="mt-5" color="failure">
+              {errorMessage}
+            </Alert>
+          )}
         </div>
       </div>
     </div>
