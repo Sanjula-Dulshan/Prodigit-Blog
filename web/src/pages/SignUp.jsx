@@ -9,6 +9,7 @@ import {
 } from "flowbite-react";
 import { useRef, useState } from "react";
 import axios from "axios";
+import OAuth from "../components/OAuth";
 
 export default function SignUp() {
   const [errorMessage, setErrorMessage] = useState(null);
@@ -149,6 +150,7 @@ export default function SignUp() {
                 "Sign Up"
               )}
             </Button>
+            <OAuth />
           </form>
           <div className="flex gap-2 text-sm mt-5">
             <span>Have an account?</span>
