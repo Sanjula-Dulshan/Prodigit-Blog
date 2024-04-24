@@ -96,6 +96,67 @@ export const login = async (req, res, next) => {
   }
 };
 
+export const google = async (req, res, next) => {
+  const { email, name, googlePhotoUrl } = req.body;
+
+  console.log("req.body", req.body);
+
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      const { password, ...userWithoutPassword } = user._doc;
+
+      //refresh token
+      const refresh_token = createRefreshToken({
+        id: user._id,
+        isAdmin: user.isAdmin,
+      });
+      res.cookie("refresh_token", refresh_token, {
+        httpOnly: true, // prevent XSS attacks cross-site scripting attacks
+        sameSite: "strict", // CSRF attacks cross-site request forgery attacks
+        path: "/api/auth/refresh_token",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return res.status(200).json(userWithoutPassword);
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      const newUser = new User({
+        fullName: name,
+        username:
+          name.toLowerCase().split(" ").join("") +
+          Math.random().toString(9).slice(-5),
+        email,
+        password: hashedPassword,
+        profilePicture: googlePhotoUrl,
+      });
+
+      await newUser.save();
+
+      const { password, ...userWithoutPassword } = newUser._doc;
+
+      //refresh token
+      const refresh_token = createRefreshToken({
+        id: newUser._id,
+        isAdmin: newUser.isAdmin,
+      });
+      res.cookie("refresh_token", refresh_token, {
+        httpOnly: true, // prevent XSS attacks cross-site scripting attacks
+        sameSite: "strict", // CSRF attacks cross-site request forgery attacks
+        path: "/api/auth/refresh_token",
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return res.status(200).json(userWithoutPassword);
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
 //Create refresh token
 const createRefreshToken = (payload) => {
   return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
